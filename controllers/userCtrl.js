@@ -114,6 +114,7 @@ const applyDoctorController = async (req, res) => {
 const getAllNotificationController = async (req, res) => {
   try {
     const user = await userModel.findOne({ _id: req.body.userId });
+    console.log(user.notifcation,user.seennotification);
     const seennotification = user.seennotification;
     const notifcation = user.notifcation;
     seennotification.push(...notifcation);
