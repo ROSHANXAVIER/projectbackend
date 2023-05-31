@@ -184,12 +184,17 @@ const bookeAppointmnetController = async (req, res) => {
     req.body.date = moment(req.body.date, "DD-MM-YYYY").toISOString();
     req.body.time = moment(req.body.time, "HH:mm").toISOString();
     req.body.status = "pending";
+    const doc=await doctorModel.find({_id:req.body.doctorId});
+    console.log(doc);
+    const fromTime = moment(doc[0].timings[0], "HH:mm").toISOString();
+    const toTime = moment(doc[0].timings[1], "HH:mm").toISOString();
+    if(fromTime<= req.body.time && toTime>=req.body.time){
     const newAppointment = new appointmentModel(req.body);
     await newAppointment.save();
     const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
     user.notifcation.push({
       type: "New-appointment-request",
-      message: `A nEw Appointment Request from ${req.body.userInfo.name}`,
+      message: `A new Appointment Request from ${req.body.userInfo.name}`,
       onCLickPath: "/user/appointments",
     });
     await user.save();
@@ -197,6 +202,13 @@ const bookeAppointmnetController = async (req, res) => {
       success: true,
       message: "Appointment Book succesfully",
     });
+  }else{
+    res.status(200).send({
+      success: true,
+      message: "Please book a time in which docotr is available",
+    });
+  }
+    
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -210,12 +222,19 @@ const bookeAppointmnetController = async (req, res) => {
 // booking bookingAvailabilityController
 const bookingAvailabilityController = async (req, res) => {
   try {
+    const doc=await doctorModel.find({_id:req.body.doctorId});
+    console.log(doc);
+    const fromsTime = moment(doc[0].timings[0], "HH:mm").toISOString();
+    const tosTime = moment(doc[0].timings[1], "HH:mm").toISOString();
     const date = moment(req.body.date, "DD-MM-YY").toISOString();
-    const fromTime = moment(req.body.time, "HH:mm")
-      .subtract(1, "hours")
-      .toISOString();
+    const fromTime = moment(req.body.time, "HH:mm").toISOString();
     const toTime = moment(req.body.time, "HH:mm").add(1, "hours").toISOString();
     const doctorId = req.body.doctorId;
+    if(fromTime> req.body.time || toTime<req.body.time){
+      return res.status(200).send({
+        message: "Please select a time at which docotor is available.",
+        success: false,
+      })}
     const appointments = await appointmentModel.find({
       doctorId,
       date,
@@ -227,7 +246,7 @@ const bookingAvailabilityController = async (req, res) => {
     if (appointments.length > 0) {
       return res.status(200).send({
         message: "Appointments not Availibale at this time",
-        success: true,
+        success: false,
       });
     } else {
       return res.status(200).send({
