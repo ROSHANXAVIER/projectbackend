@@ -3,7 +3,7 @@ const userModel = require("../models/userModels");
 
 const getAllUsersController = async (req, res) => {
   try {
-    const users = await userModel.find({isAdmin:false});
+    const users = await userModel.find({isAdmin:false,isDoctor:false});
     res.status(200).send({
       success: true,
       message: "users data list",
