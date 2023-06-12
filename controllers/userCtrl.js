@@ -231,7 +231,7 @@ const bookingAvailabilityController = async (req, res) => {
     const fromTime = moment(req.body.time, "HH:mm").toISOString();
     const toTime = moment(req.body.time, "HH:mm").add(1, "hours").toISOString();
     const doctorId = req.body.doctorId;
-    if(fromTime> req.body.time || toTime<req.body.time){
+    if(fromTime< fromsTime || toTime>tosTime){
       return res.status(200).send({
         message: "Please select a time at which docotor is available.",
         success: false,
