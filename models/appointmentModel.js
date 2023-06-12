@@ -31,6 +31,31 @@ const appointmentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    name:{
+      type:String,
+      required:true,
+      default:"unknown"
+    },
+    age:{
+      type:String,
+      required:true,
+      default:"unknown"
+    },
+    gender:{
+      type:String,
+      required:true,
+      default:"unknown"
+    },
+    bloodgroup:{
+      type:String,
+      required:true,
+      default:"unknown"
+    },
+    illness:{
+      type:String,
+      required:true,
+      default:"unknown"
+    }
   },
   { timestamps: true }
 );

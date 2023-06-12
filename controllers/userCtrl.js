@@ -192,6 +192,7 @@ const bookeAppointmnetController = async (req, res) => {
     const newAppointment = new appointmentModel(req.body);
     await newAppointment.save();
     const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
+    console.log(req.body,"hel");
     user.notifcation.push({
       type: "New-appointment-request",
       message: `A new Appointment Request from ${req.body.userInfo.name}`,
@@ -272,7 +273,7 @@ const userAppointmentsController = async (req, res) => {
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
-      data: appointments,
+      data: appointments
     });
   } catch (error) {
     console.log(error);
