@@ -297,9 +297,11 @@ const getPieData=async(req,res)=>{
     const doc=await doctorModel.findOne({userId:req.body.userId});
     const pending_appointments=await appointmentModel.find({doctorId:doc._id,status:"pending"});
     const approved_appointments=await appointmentModel.find({doctorId:doc._id,status:"approved"});
+    const rejected_appointments=await appointmentModel.find({doctorId:doc._id,status:"reject"});
     const papp={_id:"PENDING",len:pending_appointments.length};
     const aapp={_id:"APPROVED",len:approved_appointments.length};
-    appointments=[papp,aapp];
+    const rapp={_id:"REJECTED",len:rejected_appointments.length};
+    appointments=[papp,aapp,rapp];
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
