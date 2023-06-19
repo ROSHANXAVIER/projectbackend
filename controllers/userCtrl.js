@@ -7,27 +7,35 @@ const moment = require("moment");
 //register callback
 const registerController = async (req, res) => {
   try {
-    const exisitingUser = await userModel.findOne({ email: req.body.email });
-    if (exisitingUser) {
-      return res
-        .status(200)
-        .send({ message: "User Already Exist", success: false });
+    const existingUser = await userModel.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(200).send({ message: "User Already Exists", success: false });
     }
+
     const password = req.body.password;
+
+    // Check password strength
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return res.status(200).send({ message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one digit", success: false });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     req.body.password = hashedPassword;
+
     const newUser = new userModel(req.body);
     await newUser.save();
-    res.status(201).send({ message: "Register Sucessfully", success: true });
+
+    res.status(201).send({ message: "Registered Successfully", success: true });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: `Register Controller ${error.message}`,
+      message: `Register Controller Error: ${error.message}`,
     });
   }
 };
+
 
 // login callback
 const loginController = async (req, res) => {
@@ -284,6 +292,28 @@ const userAppointmentsController = async (req, res) => {
     });
   }
 };
+const getPieData=async(req,res)=>{
+  try {
+    const doc=await doctorModel.findOne({userId:req.body.userId});
+    const pending_appointments=await appointmentModel.find({doctorId:doc._id,status:"pending"});
+    const approved_appointments=await appointmentModel.find({doctorId:doc._id,status:"approved"});
+    const papp={_id:"PENDING",len:pending_appointments.length};
+    const aapp={_id:"APPROVED",len:approved_appointments.length};
+    appointments=[papp,aapp];
+    res.status(200).send({
+      success: true,
+      message: "Users Appointments Fetch SUccessfully",
+      data: appointments
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Errro WHile Fetching DOcotr",
+    });
+  }
+}
 
 module.exports = {
   loginController,
@@ -296,4 +326,5 @@ module.exports = {
   bookeAppointmnetController,
   bookingAvailabilityController,
   userAppointmentsController,
+  getPieData,
 };

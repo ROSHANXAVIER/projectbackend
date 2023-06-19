@@ -10,6 +10,7 @@ const {
   bookeAppointmnetController,
   bookingAvailabilityController,
   userAppointmentsController,
+  getPieData,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -45,6 +46,8 @@ router.post(
 //GET ALL DOC
 router.get("/getAllDoctors", authMiddleware, getAllDocotrsController);
 
+//PIE DATA
+router.get("/getPieData", authMiddleware, getPieData);
 //BOOK APPOINTMENT
 router.post("/book-appointment", authMiddleware, bookeAppointmnetController);
 
