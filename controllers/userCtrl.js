@@ -193,7 +193,14 @@ const bookeAppointmnetController = async (req, res) => {
     req.body.status = "pending";
     const doc=await doctorModel.find({_id:req.body.doctorId});
     console.log(doc);
-    if(1){
+    const appointments=await appointmentModel.find({userId:req.body.userId,date:req.body.date});
+    if(appointments.length>=1){
+      res.status(200).send({
+        success: false,
+        message: "Max 1 booking per day for each user...",
+      });
+    }
+    else if(appointments.length==0){
     const newAppointment = new appointmentModel(req.body);
     await newAppointment.save();
     const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
@@ -273,12 +280,11 @@ const bookingAvailabilityController = async (req, res) => {
 const slotAvailabilityController = async (req, res) => {
 
     try {
-      console.log("ji")
-      console.log(req.body.dae);
+    
       const dae =req.body.dae;
-      console.log(dae);
+     
       const appoint=await appointmentModel.find({date:dae});
-      console.log(appoint);
+      
       const slot_avail=[{ slot: "9am - 10am", selection: "notselected" },
       { slot: "10am - 11am", selection: "notselected" },
       { slot: "11am - 12am", selection: "notselected" },
