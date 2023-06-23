@@ -189,14 +189,11 @@ const getAllDocotrsController = async (req, res) => {
 //BOOK APPOINTMENT
 const bookeAppointmnetController = async (req, res) => {
   try {
-    req.body.date = moment(req.body.date, "DD-MM-YYYY").toISOString();
-    req.body.time = moment(req.body.time, "HH:mm").toISOString();
+    
     req.body.status = "pending";
     const doc=await doctorModel.find({_id:req.body.doctorId});
     console.log(doc);
-    const fromTime = moment(doc[0].timings[0], "HH:mm").toISOString();
-    const toTime = moment(doc[0].timings[1], "HH:mm").toISOString();
-    if(fromTime<= req.body.time && toTime>=req.body.time){
+    if(1){
     const newAppointment = new appointmentModel(req.body);
     await newAppointment.save();
     const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
@@ -272,6 +269,50 @@ const bookingAvailabilityController = async (req, res) => {
     });
   }
 };
+//SLOT AVAILABILITY
+const slotAvailabilityController = async (req, res) => {
+
+    try {
+      console.log("ji")
+      console.log(req.body.dae);
+      const dae =req.body.dae;
+      console.log(dae);
+      const appoint=await appointmentModel.find({date:dae});
+      console.log(appoint);
+      const slot_avail=[{ slot: "9am - 10am", selection: "notselected" },
+      { slot: "10am - 11am", selection: "notselected" },
+      { slot: "11am - 12am", selection: "notselected" },
+      { slot: "12am - 1pm", selection: "notselected" },
+      { slot: "1pm - 2pm", selection: "notselected" },
+      { slot: "2pm - 3pm", selection: "notselected" },
+      { slot: "3pm - 4pm", selection: "notselected" },
+      { slot: "4pm - 5pm", selection: "notselected" },
+      { slot: "5pm - 6pm", selection: "notselected" },]
+      for (let i = 0; i < appoint.length; i++) {
+          const tim=appoint[i].time;
+          for (let i = 0; i < tim.length; i++) {
+              if(tim[i].selection=="selected"){
+                slot_avail[i].selection="selected"
+              }
+          }
+      }
+      console.log(slot_avail);
+      res.status(200).send({
+        success: true,
+        message: "Please choose from available time slots",
+        data: slot_avail
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({
+        success: false,
+        error,
+        message: "Error In Booking",
+      });
+    }
+    
+};
+
 
 const userAppointmentsController = async (req, res) => {
   try {
@@ -329,4 +370,5 @@ module.exports = {
   bookingAvailabilityController,
   userAppointmentsController,
   getPieData,
+  slotAvailabilityController,
 };

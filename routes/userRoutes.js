@@ -11,6 +11,7 @@ const {
   bookingAvailabilityController,
   userAppointmentsController,
   getPieData,
+  slotAvailabilityController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -57,6 +58,14 @@ router.post(
   authMiddleware,
   bookingAvailabilityController
 );
+
+//Slot Avliability
+router.post(
+  "/slot-availability",
+  authMiddleware,
+  slotAvailabilityController
+);
+
 
 //Appointments List
 router.get("/user-appointments", authMiddleware, userAppointmentsController);
