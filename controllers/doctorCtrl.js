@@ -66,6 +66,19 @@ const doctorAppointmentsController = async (req, res) => {
     const appointments = await appointmentModel.find({
       doctorId: doctor._id,
     });
+    var time=[];
+    for (let i = 0; i < appointments.length; i++) {
+      const tim=appointments[i].time;
+      for (let i = 0; i < tim.length; i++) {
+          if(tim[i].selection=="selected"){
+            time.push(tim[i].slot);
+            break;
+          }
+      }
+  }
+  for (let i = 0; i < appointments.length; i++) {
+    appointments[i].doctorInfo=time[i];
+  }
     res.status(200).send({
       success: true,
       message: "Doctor Appointments fetch Successfully",

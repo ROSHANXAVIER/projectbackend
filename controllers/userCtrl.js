@@ -50,7 +50,7 @@ const loginController = async (req, res) => {
     if (!isMatch) {
       return res
         .status(200)
-        .send({ message: "Invlid EMail or Password", success: false });
+        .send({ message: "Invalid Email or Password", success: false });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
@@ -171,10 +171,11 @@ const deleteAllNotificationController = async (req, res) => {
 const getAllDocotrsController = async (req, res) => {
   try {
     const doctors = await doctorModel.find({ status: "approved" });
+    const patients=await userModel.find({});
     res.status(200).send({
       success: true,
       message: "Docots Lists Fetched Successfully",
-      data: doctors,
+      data: {doctors,patients}
     });
   } catch (error) {
     console.log(error);
@@ -325,6 +326,22 @@ const userAppointmentsController = async (req, res) => {
     const appointments = await appointmentModel.find({
       userId: req.body.userId,
     });
+    var time=[];
+    var flag=0;
+    for (let i = 0; i < appointments.length; i++) {
+      const tim=appointments[i].time;
+      for (let i = 0; i < tim.length; i++) {
+          if(tim[i].selection=="selected"){
+            time.push(tim[i].slot);
+            break;
+          }
+      }
+  }
+  for (let i = 0; i < appointments.length; i++) {
+    appointments[i].doctorInfo=time[i];
+  }
+  console.log(time);
+  console.log(appointments,"appojnt")
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
