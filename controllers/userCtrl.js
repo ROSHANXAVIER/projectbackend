@@ -187,6 +187,7 @@ const getAllDocotrsController = async (req, res) => {
   }
 };
 
+
 //BOOK APPOINTMENT
 const bookeAppointmnetController = async (req, res) => {
   try {
@@ -369,7 +370,9 @@ const getPieData=async(req,res)=>{
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
-      data: appointments
+      data: appointments,
+      like:doc.likes,
+      dislike:doc.dislikes
     });
   } catch (error) {
     console.log(error);
@@ -380,6 +383,52 @@ const getPieData=async(req,res)=>{
     });
   }
 }
+
+
+const feedGet = async (req, res) => {
+  console.log(req.body);
+  // const user = await doctorModel.find({ userId: req.body.use});
+  // console.log(user);
+  // const like=user.likes;
+  // const dislike=user.dislikes;
+  // console.log("feed",like,dislike);
+  // try {
+  //   return res.status(200).json({ success: true, message: '', data:{like:like,dislike:dislike} });
+  // } catch (error) {
+  //   console.error(error);
+  //   return res.status(500).json({ success: false, message: 'Internal server error' });
+  // }
+};
+
+
+const feedController = async (req, res) => {
+  const doctorId  = req.body.doctorId;
+  console.log(doctorId);
+  try {
+    // Find the doctor by ID
+    const doctor = await doctorModel.findById(doctorId);
+
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'Doctor not found' });
+    }
+
+    // Increment the number of likes by 1
+    if(req.body.feed=="LIKE"){
+      doctor.likes += 1;
+    }else{
+      doctor.dislikes+=1;
+    }
+    
+
+    // Save the updated doctor
+    await doctor.save();
+
+    return res.status(200).json({ success: true, message: 'Likes updated successfully', data: doctor });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
 
 module.exports = {
   loginController,
@@ -394,4 +443,6 @@ module.exports = {
   userAppointmentsController,
   getPieData,
   slotAvailabilityController,
+  feedController,
+  feedGet,
 };
