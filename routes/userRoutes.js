@@ -51,6 +51,10 @@ router.get("/getAllDoctors", authMiddleware, getAllDocotrsController);
 
 //PIE DATA
 router.get("/getPieData", authMiddleware, getPieData);
+
+
+//feed
+router.post("/getFeed", authMiddleware, feedGet);
 //BOOK APPOINTMENT
 router.post("/book-appointment", authMiddleware, bookeAppointmnetController);
 

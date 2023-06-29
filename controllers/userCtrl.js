@@ -386,19 +386,33 @@ const getPieData=async(req,res)=>{
 
 
 const feedGet = async (req, res) => {
-  console.log(req.body);
-  // const user = await doctorModel.find({ userId: req.body.use});
-  // console.log(user);
-  // const like=user.likes;
-  // const dislike=user.dislikes;
-  // console.log("feed",like,dislike);
-  // try {
-  //   return res.status(200).json({ success: true, message: '', data:{like:like,dislike:dislike} });
-  // } catch (error) {
-  //   console.error(error);
-  //   return res.status(500).json({ success: false, message: 'Internal server error' });
-  // }
+  console.log(req.body.uid);
+  try {
+    const doc = await doctorModel.findOne({_id: req.body.uid });
+    console.log(doc);
+    if (doc) {
+      res.status(200).send({
+        success: true,
+        message: "Users Appointments Fetch Successfully",
+        likes: doc.likes , // Use default value of 0 if likes property is undefined
+        dislikes: doc.dislikes , // Use default value of 0 if dislikes property is undefined
+      });
+    } else {
+      res.status(404).send({
+        success: false,
+        message: "Doctor not found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error while fetching Doctor",
+    });
+  }
 };
+
 
 
 const feedController = async (req, res) => {
