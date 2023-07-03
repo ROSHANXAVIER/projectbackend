@@ -5,8 +5,10 @@ const {
   getDoctorByIdController,
   doctorAppointmentsController,
   updateStatusController,
+  setGmeet,
 } = require("../controllers/doctorCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
+const { gmeetGet } = require("../controllers/userCtrl");
 const router = express.Router();
 
 //POST SINGLE DOC INFO
@@ -17,6 +19,9 @@ router.post("/updateProfile", authMiddleware, updateProfileController);
 
 //POST  GET SINGLE DOC INFO
 router.post("/getDoctorById", authMiddleware, getDoctorByIdController);
+
+//gmeet
+router.post("/setGmeet", authMiddleware,setGmeet );
 
 //GET Appointments
 router.get(

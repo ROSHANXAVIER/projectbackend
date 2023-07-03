@@ -14,6 +14,7 @@ const {
   slotAvailabilityController,
   feedController,
   feedGet,
+  gmeetGet,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -52,6 +53,8 @@ router.get("/getAllDoctors", authMiddleware, getAllDocotrsController);
 //PIE DATA
 router.get("/getPieData", authMiddleware, getPieData);
 
+//gmeet
+router.post("/gmeetGet", authMiddleware, gmeetGet);
 
 //feed
 router.post("/getFeed", authMiddleware, feedGet);

@@ -55,6 +55,11 @@ const appointmentSchema = new mongoose.Schema(
       type:String,
       required:true,
       default:"unknown"
+    },
+    gmeet:{
+      type:String,
+      required:true,
+      default:"You will get your link soon..."
     }
   },
   { timestamps: true }

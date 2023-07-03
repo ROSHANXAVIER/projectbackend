@@ -443,6 +443,24 @@ const feedController = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+const gmeetGet = async (req, res) => {
+
+  const Id  = req.body.appid;
+  console.log(Id)
+  // // console.log(doctorId);
+  try {
+    // Find the doctor by ID
+    const appointment = await appointmentModel.find({userId:req.body.user._id,_id:Id});
+    const resp=appointment[0].gmeet;
+    console.log(resp,"gmeet");
+    return res.status(200).json({ success: true, message: 'GMEET', data: resp });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+
 
 module.exports = {
   loginController,
@@ -459,4 +477,5 @@ module.exports = {
   slotAvailabilityController,
   feedController,
   feedGet,
+  gmeetGet,
 };
