@@ -452,8 +452,13 @@ const gmeetGet = async (req, res) => {
     // Find the doctor by ID
     const appointment = await appointmentModel.find({userId:req.body.user._id,_id:Id});
     const resp=appointment[0].gmeet;
-    console.log(resp,"gmeet");
-    return res.status(200).json({ success: true, message: 'GMEET', data: resp });
+    const doc=appointment[0].doctorInfo;
+    const u=await doctorModel.find({_id:doc});
+    console.log(u);
+    const upi=u[0].website;
+    console.log(upi)
+    console.log(upi,"gmeet");
+    return res.status(200).json({ success: true, message: 'GMEET', data: resp ,upi:upi});
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
