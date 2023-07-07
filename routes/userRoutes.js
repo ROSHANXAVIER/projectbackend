@@ -15,6 +15,7 @@ const {
   feedController,
   feedGet,
   gmeetGet,
+  complaint,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -33,6 +34,10 @@ router.post("/getUserData", authMiddleware, authController);
 
 //APply Doctor || POST
 router.post("/apply-doctor", authMiddleware, applyDoctorController);
+
+//contact
+router.post("/complaint", authMiddleware, complaint);
+
 
 //Notifiaction  Doctor || POST
 router.post(

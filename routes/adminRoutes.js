@@ -5,6 +5,7 @@ const {
   changeAccountStatusController,
   removeDoctor,
   removeUser,
+  getQuery,
 } = require("../controllers/adminCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -15,6 +16,10 @@ router.get("/getAllUsers", authMiddleware, getAllUsersController);
 
 //GET METHOD || DOCTORS
 router.get("/getAllDoctors", authMiddleware, getAllDoctorsController);
+
+
+///complaints
+router.get("/getQuery", authMiddleware, getQuery);
 
 //POST ACCOUNT STATUS
 router.post(

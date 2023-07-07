@@ -1,6 +1,6 @@
 const doctorModel = require("../models/doctorModel");
 const userModel = require("../models/userModels");
-
+const complaintModel=require("../models/complaintModel")
 const getAllUsersController = async (req, res) => {
   try {
     const users = await userModel.find({isAdmin:false,isDoctor:false});
@@ -108,10 +108,30 @@ const removeUser=async(req,res)=>{
   }
 }
 
+const getQuery=async(req,res)=>{
+  try{
+    const query = await complaintModel.find({}, null, { limit: 6, sort: { createdAt: -1 } });
+    res.status(201).send({
+      success: true,
+      message: "Query send",
+      data: query,
+    });
+  }catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      message: "Error in Query fetch",
+      error,
+    }); 
+  }
+}
+
+
 module.exports = {
   getAllDoctorsController,
   getAllUsersController,
   changeAccountStatusController,
   removeDoctor,
   removeUser,
+  getQuery,
 };

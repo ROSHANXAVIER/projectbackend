@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
+const complaintModel = require("../models/complaintModel");
 const moment = require("moment");
 //register callback
 const registerController = async (req, res) => {
@@ -417,7 +418,7 @@ const feedGet = async (req, res) => {
 
 const feedController = async (req, res) => {
   const doctorId  = req.body.doctorId;
-  console.log(doctorId);
+  
   try {
     // Find the doctor by ID
     const doctor = await doctorModel.findById(doctorId);
@@ -446,7 +447,7 @@ const feedController = async (req, res) => {
 const gmeetGet = async (req, res) => {
 
   const Id  = req.body.appid;
-  console.log(Id)
+
   // // console.log(doctorId);
   try {
     // Find the doctor by ID
@@ -454,16 +455,33 @@ const gmeetGet = async (req, res) => {
     const resp=appointment[0].gmeet;
     const doc=appointment[0].doctorInfo;
     const u=await doctorModel.find({_id:doc});
-    console.log(u);
+  
     const upi=u[0].website;
-    console.log(upi)
-    console.log(upi,"gmeet");
+  
     return res.status(200).json({ success: true, message: 'GMEET', data: resp ,upi:upi});
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+const complaint = async (req, res) => {
+
+  const name=req.body.complaintAgainst;
+  const reason=req.body.complaintReason;
+  data={name:name,reason:reason}; 
+
+  // // // console.log(doctorId);
+  try {
+    const newcomplaint = new complaintModel(data);
+    await newcomplaint.save();
+  
+    return res.status(200).json({ success: true, message: 'complaint filed'});
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 
 
 
@@ -483,4 +501,5 @@ module.exports = {
   feedController,
   feedGet,
   gmeetGet,
+  complaint,
 };
