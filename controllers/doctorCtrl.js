@@ -2,6 +2,8 @@ const appointmentModel = require("../models/appointmentModel");
 const doctorModel = require("../models/doctorModel");
 const userModel = require("../models/userModels");
 const { link } = require("../routes/userRoutes");
+const moment = require('moment');
+
 const getDoctorInfoController = async (req, res) => {
   try {
     const doctor = await doctorModel.findOne({ userId: req.body.userId });
@@ -85,9 +87,24 @@ const doctorAppointmentsController = async (req, res) => {
     const appointments = await appointmentModel.find({
       doctorId: doctor._id,
     });
+    const currentDate = moment().startOf('day');
     var time=[];
-    for (let i = 0; i < appointments.length; i++) {
-      const tim=appointments[i].time;
+    var flag=0;
+   const today = new Date();
+const sortedAppointments = appointments
+  .sort((a, b) => {
+    const dateA = moment(a.date, 'DD-MM-YYYY');
+  const dateB = moment(b.date, 'DD-MM-YYYY');
+  return dateA - dateB;
+  });
+
+  const filteredAppointments = sortedAppointments.filter(appointment => {
+  const appointmentDate = moment(appointment.date, 'DD-MM-YYYY');
+  return appointmentDate.isSameOrAfter(currentDate);
+});
+  console.log(appointments);
+    for (let i = 0; i < filteredAppointments.length; i++) {
+      const tim=filteredAppointments[i].time;
       for (let i = 0; i < tim.length; i++) {
           if(tim[i].selection=="selected"){
             time.push(tim[i].slot);
@@ -95,13 +112,14 @@ const doctorAppointmentsController = async (req, res) => {
           }
       }
   }
-  for (let i = 0; i < appointments.length; i++) {
-    appointments[i].doctorInfo=time[i];
+  for (let i = 0; i < filteredAppointments.length; i++) {
+    filteredAppointments[i].doctorInfo=time[i];
   }
+ 
     res.status(200).send({
       success: true,
-      message: "Doctor Appointments fetch Successfully",
-      data: appointments,
+      message: "Users Appointments Fetch SUccessfully",
+      data: filteredAppointments
     });
   } catch (error) {
     console.log(error);
@@ -120,6 +138,7 @@ const updateStatusController = async (req, res) => {
       appointmentsId,
       { status }
     );
+    const doc=await doctorModel.findOne({_id:appointments.doctorId})
     const user = await userModel.findOne({ _id: appointments.userId });
     const notifcation = user.notifcation;
     notifcation.push({
@@ -128,6 +147,38 @@ const updateStatusController = async (req, res) => {
       onCLickPath: "/doctor-appointments",
     });
     await user.save();
+    const froms="u2004061@rajagiri.edu.in";
+    const tos=user.email;
+    const frps="roshXAVIER01+";
+    const subs=`DOC++ Appointment ${status}`;
+    if(status==="approved"){
+      var tes=`Hey ${user.name} your appointment is ${status} by Dr.${doc.firstName}${" "}${doc.lastName} please do join on time on ${appointments.date} . THANKYOU!!..`;
+    }
+    else{
+      var tes=`Hey ${user.name} your appointment is rejected by Dr.${doc.firstName}${" "}${doc.lastName} , we are sorry for the inconvenience.`;
+    }
+    console.log(req.body,appointments,"ji");
+    const nodemailer = require('nodemailer');
+let mailOptions = {
+    from: froms,
+    to: tos,
+    subject: subs,
+    text: tes
+};
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: froms,
+      pass: frps
+    }
+});
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent');
+        }
+  });
     res.status(200).send({
       success: true,
       message: "Appointment Status Updated",

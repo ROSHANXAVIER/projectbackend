@@ -328,10 +328,24 @@ const userAppointmentsController = async (req, res) => {
     const appointments = await appointmentModel.find({
       userId: req.body.userId,
     });
+    const currentDate = moment().startOf('day');
     var time=[];
     var flag=0;
-    for (let i = 0; i < appointments.length; i++) {
-      const tim=appointments[i].time;
+   const today = new Date();
+const sortedAppointments = appointments
+  .sort((a, b) => {
+    const dateA = moment(a.date, 'DD-MM-YYYY');
+  const dateB = moment(b.date, 'DD-MM-YYYY');
+  return dateA - dateB;
+  });
+
+  const filteredAppointments = sortedAppointments.filter(appointment => {
+  const appointmentDate = moment(appointment.date, 'DD-MM-YYYY');
+  return appointmentDate.isSameOrAfter(currentDate);
+});
+  console.log(appointments);
+    for (let i = 0; i < filteredAppointments.length; i++) {
+      const tim=filteredAppointments[i].time;
       for (let i = 0; i < tim.length; i++) {
           if(tim[i].selection=="selected"){
             time.push(tim[i].slot);
@@ -339,22 +353,21 @@ const userAppointmentsController = async (req, res) => {
           }
       }
   }
-  for (let i = 0; i < appointments.length; i++) {
-    appointments[i].doctorInfo=time[i];
+  for (let i = 0; i < filteredAppointments.length; i++) {
+    filteredAppointments[i].doctorInfo=time[i];
   }
-  console.log(time);
-  console.log(appointments,"appojnt")
+ 
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
-      data: appointments
+      data: filteredAppointments
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
       error,
-      message: "Error In User Appointments",
+      message: "Error in Doc Appointments",
     });
   }
 };
