@@ -5,6 +5,9 @@ const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
 const complaintModel = require("../models/complaintModel");
 const moment = require("moment");
+const multer = require('multer');
+const upload = multer(); // Create a multer instance
+
 //register callback
 const registerController = async (req, res) => {
   try {
@@ -90,6 +93,7 @@ const authController = async (req, res) => {
 
 // APpply DOctor CTRL
 const applyDoctorController = async (req, res) => {
+  console.log(req.body);
   try {
     const newDoctor = await doctorModel({ ...req.body, status: "pending" });
     await newDoctor.save();
@@ -190,41 +194,49 @@ const getAllDocotrsController = async (req, res) => {
 
 
 //BOOK APPOINTMENT
-const bookeAppointmnetController = async (req, res) => {
+const bookAppointmentController = async (req, res) => {
+  
   try {
-    
     req.body.status = "pending";
-    const doc=await doctorModel.find({_id:req.body.doctorId});
+    const doc = await doctorModel.find({ _id: req.body.doctorId });
     console.log(doc);
-    const appointments=await appointmentModel.find({userId:req.body.userId,date:req.body.date});
-    if(appointments.length>=1){
+
+    const appointments = await appointmentModel.find({
+      userId: req.body.userId,
+      date: req.body.date,
+    });
+
+    if (appointments.length >= 1) {
       res.status(200).send({
         success: false,
         message: "Max 1 booking per day for each user...",
       });
+    } else if (appointments.length == 0) {
+      // Update the 'image' field processing
+      
+
+      const newAppointment = new appointmentModel(req.body);
+      await newAppointment.save();
+
+      const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
+      console.log(req.body, "hel");
+      user.notifcation.push({
+        type: "New-appointment-request",
+        message: `A new Appointment Request from ${req.body.userInfo.name}`,
+        onCLickPath: "/user/appointments",
+      });
+      await user.save();
+
+      res.status(200).send({
+        success: true,
+        message: "Appointment Booked successfully",
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        message: "Please book a time when the doctor is available",
+      });
     }
-    else if(appointments.length==0){
-    const newAppointment = new appointmentModel(req.body);
-    await newAppointment.save();
-    const user = await userModel.findOne({ _id: req.body.doctorInfo.userId });
-    console.log(req.body,"hel");
-    user.notifcation.push({
-      type: "New-appointment-request",
-      message: `A new Appointment Request from ${req.body.userInfo.name}`,
-      onCLickPath: "/user/appointments",
-    });
-    await user.save();
-    res.status(200).send({
-      success: true,
-      message: "Appointment Book succesfully",
-    });
-  }else{
-    res.status(200).send({
-      success: true,
-      message: "Please book a time in which docotr is available",
-    });
-  }
-    
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -506,7 +518,7 @@ module.exports = {
   getAllNotificationController,
   deleteAllNotificationController,
   getAllDocotrsController,
-  bookeAppointmnetController,
+  bookAppointmentController,
   bookingAvailabilityController,
   userAppointmentsController,
   getPieData,

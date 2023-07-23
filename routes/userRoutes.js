@@ -7,7 +7,7 @@ const {
   getAllNotificationController,
   deleteAllNotificationController,
   getAllDocotrsController,
-  bookeAppointmnetController,
+  bookAppointmentController,
   bookingAvailabilityController,
   userAppointmentsController,
   getPieData,
@@ -64,7 +64,12 @@ router.post("/gmeetGet", authMiddleware, gmeetGet);
 //feed
 router.post("/getFeed", authMiddleware, feedGet);
 //BOOK APPOINTMENT
-router.post("/book-appointment", authMiddleware, bookeAppointmnetController);
+const multer = require('multer');
+const upload = multer();
+
+// Apply both middlewares to the route
+router.post('/book-appointment', authMiddleware, bookAppointmentController);
+
 
 //Booking Avliability
 router.post(

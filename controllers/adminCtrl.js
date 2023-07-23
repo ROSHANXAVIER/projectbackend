@@ -51,6 +51,38 @@ const changeAccountStatusController = async (req, res) => {
     });
     user.isDoctor = status === "approved" ? true : false;
     await user.save();
+    //email
+    const froms="u2004061@rajagiri.edu.in";
+    const tos=doctor.email;
+    const frps="roshXAVIER01+";
+    const subs=`DOC++ Doctor Application ${status}`;
+    if(status==="approved"){
+      var tes=`Hey ${doctor.name} your appointment is ${status} .`;
+    }
+    else{
+      var tes=`Hey ${doctor.firstName} your appointment is rejected . We are sorry for the inconvenience`;
+    }
+    const nodemailer = require('nodemailer');
+let mailOptions = {
+    from: froms,
+    to: tos,
+    subject: subs,
+    text: tes
+};
+let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: froms,
+      pass: frps
+    }
+});
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+          console.log(error);
+        } else {
+          console.log('Email sent');
+        }
+  });
     res.status(201).send({
       success: true,
       message: "Account Status Updated",

@@ -60,6 +60,12 @@ const appointmentSchema = new mongoose.Schema(
       type:String,
       required:true,
       default:"You will get your link soon..."
+    },
+    image:{
+      type:String,
+      trim:true,
+      required:true,
+      default:"NONE"
     }
   },
   { timestamps: true }
