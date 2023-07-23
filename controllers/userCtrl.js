@@ -293,46 +293,98 @@ const bookingAvailabilityController = async (req, res) => {
 };
 //SLOT AVAILABILITY
 const slotAvailabilityController = async (req, res) => {
-
-    try {
+  try {
+    const dae = req.body.dae;
+    const currentDate = new Date(); // Get the current date and time
     
-      const dae =req.body.dae;
-     
-      const appoint=await appointmentModel.find({date:dae});
-      
-      const slot_avail=[{ slot: "9am - 10am", selection: "notselected" },
-      { slot: "10am - 11am", selection: "notselected" },
-      { slot: "11am - 12am", selection: "notselected" },
-      { slot: "12am - 1pm", selection: "notselected" },
-      { slot: "1pm - 2pm", selection: "notselected" },
-      { slot: "2pm - 3pm", selection: "notselected" },
-      { slot: "3pm - 4pm", selection: "notselected" },
-      { slot: "4pm - 5pm", selection: "notselected" },
-      { slot: "5pm - 6pm", selection: "notselected" },]
-      for (let i = 0; i < appoint.length; i++) {
-          const tim=appoint[i].time;
-          for (let i = 0; i < tim.length; i++) {
-              if(tim[i].selection=="selected"){
-                slot_avail[i].selection="selected"
-              }
-          }
-      }
-      console.log(slot_avail);
-      res.status(200).send({
-        success: true,
-        message: "Please choose from available time slots",
-        data: slot_avail
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({
+    // Convert the provided date to a Date object
+    const selectedDate = new Date(dae);
+
+    // Compare the selectedDate with the currentDate to check if it's in the past
+    if (selectedDate < currentDate) {
+      return res.status(400).json({
         success: false,
-        error,
-        message: "Error In Booking",
+        message: "Please select an appropriate date. The selected date is in the past.",
       });
     }
     
+    
+    const appoint = await appointmentModel.find({ date: dae });
+
+    const slot_avail=[{ slot: "9am - 10am", selection: "notselected" },
+    { slot: "10am - 11am", selection: "notselected" },
+    { slot: "11am - 12am", selection: "notselected" },
+    { slot: "12am - 1pm", selection: "notselected" },
+    { slot: "1pm - 2pm", selection: "notselected" },
+    { slot: "2pm - 3pm", selection: "notselected" },
+    { slot: "3pm - 4pm", selection: "notselected" },
+    { slot: "4pm - 5pm", selection: "notselected" },
+    { slot: "5pm - 6pm", selection: "notselected" },]
+    for (let i = 0; i < appoint.length; i++) {
+        const tim=appoint[i].time;
+        for (let i = 0; i < tim.length; i++) {
+            if(tim[i].selection=="selected"){
+              slot_avail[i].selection="selected"
+            }
+        }
+    }
+
+    res.status(200).send({
+      success: true,
+      message: "Please choose from available time slots",
+      data: slot_avail,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Error In Booking",
+    });
+  }
 };
+
+// const slotAvailabilityController = async (req, res) => {
+
+//     try {
+    
+//       const dae =req.body.dae;
+     
+//       const appoint=await appointmentModel.find({date:dae});
+      
+//       const slot_avail=[{ slot: "9am - 10am", selection: "notselected" },
+//       { slot: "10am - 11am", selection: "notselected" },
+//       { slot: "11am - 12am", selection: "notselected" },
+//       { slot: "12am - 1pm", selection: "notselected" },
+//       { slot: "1pm - 2pm", selection: "notselected" },
+//       { slot: "2pm - 3pm", selection: "notselected" },
+//       { slot: "3pm - 4pm", selection: "notselected" },
+//       { slot: "4pm - 5pm", selection: "notselected" },
+//       { slot: "5pm - 6pm", selection: "notselected" },]
+//       for (let i = 0; i < appoint.length; i++) {
+//           const tim=appoint[i].time;
+//           for (let i = 0; i < tim.length; i++) {
+//               if(tim[i].selection=="selected"){
+//                 slot_avail[i].selection="selected"
+//               }
+//           }
+//       }
+//       console.log(slot_avail);
+//       res.status(200).send({
+//         success: true,
+//         message: "Please choose from available time slots",
+//         data: slot_avail
+//       });
+//     } catch (error) {
+//       console.log(error);
+//       res.status(500).send({
+//         success: false,
+//         error,
+//         message: "Error In Booking",
+//       });
+//     }
+    
+// };
 
 
 const userAppointmentsController = async (req, res) => {
@@ -343,14 +395,16 @@ const userAppointmentsController = async (req, res) => {
     const currentDate = moment().startOf('day');
     var time=[];
     var flag=0;
-   const today = new Date();
-const sortedAppointments = appointments
+    const today = new Date();
+    const sortedAppointments = appointments
   .sort((a, b) => {
     const dateA = moment(a.date, 'DD-MM-YYYY');
-  const dateB = moment(b.date, 'DD-MM-YYYY');
+    const dateB = moment(b.date, 'DD-MM-YYYY');
   return dateA - dateB;
   });
+  
 
+  
   const filteredAppointments = sortedAppointments.filter(appointment => {
   const appointmentDate = moment(appointment.date, 'DD-MM-YYYY');
   return appointmentDate.isSameOrAfter(currentDate);
@@ -368,7 +422,17 @@ const sortedAppointments = appointments
   for (let i = 0; i < filteredAppointments.length; i++) {
     filteredAppointments[i].doctorInfo=time[i];
   }
- 
+
+  for (let i = 0; i < filteredAppointments.length; i++) {
+    const doc = await doctorModel.findOne({ _id: filteredAppointments[i].doctorId });
+    if (!doc) {
+      filteredAppointments[i].doctorId = "No doctor found";
+    } else {
+      filteredAppointments[i].doctorId = doc.firstName;
+    }
+  }
+
+  
     res.status(200).send({
       success: true,
       message: "Users Appointments Fetch SUccessfully",
@@ -506,7 +570,37 @@ const complaint = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+//cancellation
 
+const deleteAppointment = async (req, res) => {
+  const appointmentId = req.body.appointmentId;
+
+  try {
+    // Find the appointment by ID and delete it
+    const deletedAppointment = await appointmentModel.findByIdAndDelete(appointmentId);
+
+    if (!deletedAppointment) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
+
+    // Successfully deleted the appointment
+    return res.status(200).json({
+      success: true,
+      message: "Appointment cancelled successfully",
+      data: deletedAppointment,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting appointment",
+      error: error.message,
+    });
+  }
+};
 
 
 
@@ -527,4 +621,5 @@ module.exports = {
   feedGet,
   gmeetGet,
   complaint,
+  deleteAppointment,
 };

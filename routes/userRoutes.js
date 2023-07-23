@@ -16,6 +16,7 @@ const {
   feedGet,
   gmeetGet,
   complaint,
+  deleteAppointment,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -95,6 +96,13 @@ router.post(
   authMiddleware,
   slotAvailabilityController
 );
+
+router.post(
+  "/cancel-appointment",
+  authMiddleware,
+  deleteAppointment
+);
+
 
 
 //Appointments List
