@@ -17,6 +17,8 @@ const {
   gmeetGet,
   complaint,
   deleteAppointment,
+  coinrequest,
+  findUserBalance,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -98,10 +100,23 @@ router.post(
 );
 
 router.post(
+  "/request-coins",
+  authMiddleware,
+  coinrequest
+);
+
+router.post(
   "/cancel-appointment",
   authMiddleware,
   deleteAppointment
 );
+
+router.get(
+  "/balance",
+  authMiddleware,
+  findUserBalance
+);
+
 
 
 

@@ -3,7 +3,8 @@ const doctorModel = require("../models/doctorModel");
 const userModel = require("../models/userModels");
 const { link } = require("../routes/userRoutes");
 const moment = require('moment');
-
+const adcoinModel=require('../models/adcoinModel')
+const balanceModel=require('../models/balanceModel')
 const getDoctorInfoController = async (req, res) => {
   try {
     const doctor = await doctorModel.findOne({ userId: req.body.userId });
@@ -195,6 +196,35 @@ let transporter = nodemailer.createTransport({
 
 
 
+
+
+const redeem=async(req,res)=>{
+  try {
+    const amount = req.body.amount;
+    const userId = req.body.userId; // Assuming the authenticated user ID is available in req.user
+
+    // Find the user's current balance document
+    const userBalance = await balanceModel.findOne({ userId });
+    if (!userBalance) {
+      return res.status(404).json({ error: "Balance not found for the user" });
+    }
+    const doc=await doctorModel.findOne({userId:userId});
+    // Add the redeemed amount to the redemption model
+    const redemptionEntry = new adcoinModel({ userId:userId,amount:amount ,upi:doc.website});
+    await redemptionEntry.save();
+
+    // Update the user's balance to 0
+    userBalance.balance = 0;
+    await userBalance.save();
+
+    res.status(200).json({ success: true, message: "Balance redeemed successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({succcess:false, error: "Internal server error" });
+  }
+}
+
+
 module.exports = {
   getDoctorInfoController,
   updateProfileController,
@@ -202,4 +232,5 @@ module.exports = {
   doctorAppointmentsController,
   updateStatusController,
   setGmeet,
+  redeem,
 };

@@ -6,6 +6,7 @@ const {
   doctorAppointmentsController,
   updateStatusController,
   setGmeet,
+  redeem,
 } = require("../controllers/doctorCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 const { gmeetGet } = require("../controllers/userCtrl");
@@ -22,6 +23,10 @@ router.post("/getDoctorById", authMiddleware, getDoctorByIdController);
 
 //gmeet
 router.post("/setGmeet", authMiddleware,setGmeet );
+
+//redeem
+router.post("/redeem", authMiddleware,redeem );
+
 
 //GET Appointments
 router.get(

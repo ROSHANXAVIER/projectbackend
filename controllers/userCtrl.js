@@ -7,6 +7,8 @@ const complaintModel = require("../models/complaintModel");
 const moment = require("moment");
 const multer = require('multer');
 const upload = multer(); // Create a multer instance
+const coinModel=require('../models/coinModel');
+const balanceModel=require('../models/balanceModel')
 
 //register callback
 const registerController = async (req, res) => {
@@ -195,12 +197,10 @@ const getAllDocotrsController = async (req, res) => {
 
 //BOOK APPOINTMENT
 const bookAppointmentController = async (req, res) => {
-  
   try {
     req.body.status = "pending";
     const doc = await doctorModel.find({ _id: req.body.doctorId });
-    console.log(doc);
-
+  
     const appointments = await appointmentModel.find({
       userId: req.body.userId,
       date: req.body.date,
@@ -211,9 +211,39 @@ const bookAppointmentController = async (req, res) => {
         success: false,
         message: "Max 1 booking per day for each user...",
       });
-    } else if (appointments.length == 0) {
-      // Update the 'image' field processing
-      
+    } else if (appointments.length === 0) {
+      // Fetch the fee set by the specific doctor
+      const doctor = await doctorModel.findOne({ _id: req.body.doctorId });
+      const fee = doctor.feesPerCunsaltation;
+
+      // Fetch the user's current balance from balanceModel
+      const userBalance = await balanceModel.findOne({ userId: req.body.userId });
+
+      if (!userBalance) {
+        return res.status(404).json({ error: "Balance not found for the user" });
+      }
+
+      // Check if the user's balance is sufficient to cover the doctor's fee
+      if (userBalance.balance < fee) {
+        return res.status(200).send({
+          success: false,
+          message: "Insufficient balance. Please recharge your wallet.",
+        });
+      }
+
+      // Deduct the fee from the user's balance and update balanceModel
+      userBalance.balance -= fee;
+      await userBalance.save();
+
+      // Update the doctor's balance by adding the fee
+      let doctorBalance = await balanceModel.findOne({ userId: doctor.userId });
+      console.log(doctorBalance,"JI");
+      if (!doctorBalance) {
+        // If the doctor's balance doesn't exist, create one
+        doctorBalance = new balanceModel({ userId: doctor.userId, balance: 0 });
+      }
+      doctorBalance.balance += fee;
+      await doctorBalance.save();
 
       const newAppointment = new appointmentModel(req.body);
       await newAppointment.save();
@@ -229,7 +259,7 @@ const bookAppointmentController = async (req, res) => {
 
       res.status(200).send({
         success: true,
-        message: "Appointment Booked successfully",
+        message: `Appointment Booked successfully. ${fee} R Coin deducted from your balance.`,
       });
     } else {
       res.status(200).send({
@@ -246,6 +276,8 @@ const bookAppointmentController = async (req, res) => {
     });
   }
 };
+
+
 
 // booking bookingAvailabilityController
 const bookingAvailabilityController = async (req, res) => {
@@ -297,9 +329,12 @@ const slotAvailabilityController = async (req, res) => {
     const dae = req.body.dae;
     const currentDate = new Date(); // Get the current date and time
     
-    // Convert the provided date to a Date object
-    const selectedDate = new Date(dae);
-
+    // Parse the provided date string (e.g., "23-07-2023")
+    const [day, month, year] = dae.split("-").map(Number);
+    
+    // Create a Date object from the parsed values
+    const selectedDate = new Date(year, month - 1, day);
+    
     // Compare the selectedDate with the currentDate to check if it's in the past
     if (selectedDate < currentDate) {
       return res.status(400).json({
@@ -307,6 +342,7 @@ const slotAvailabilityController = async (req, res) => {
         message: "Please select an appropriate date. The selected date is in the past.",
       });
     }
+    
     
     
     const appoint = await appointmentModel.find({ date: dae });
@@ -447,6 +483,34 @@ const userAppointmentsController = async (req, res) => {
     });
   }
 };
+
+const coinrequest=async(req,res)=>{
+  console.log(req.body)
+  const { userId, amount, paymentMethod } = req.body;
+
+  // Validate the request data
+  if (!userId || !amount || !paymentMethod) {
+    return res.status(400).json({ error: "Invalid request data" });
+  }
+
+  // Save the coin request in the database
+  const newRequest = new coinModel({
+    userId,
+    amount,
+    paymentMethod,
+  });
+
+  try {
+    await newRequest.save();
+    res.status(200).send({success:true, message: "Coin request submitted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+
+
+
 const getPieData=async(req,res)=>{
   try {
     const doc=await doctorModel.findOne({userId:req.body.userId});
@@ -574,8 +638,12 @@ const complaint = async (req, res) => {
 
 const deleteAppointment = async (req, res) => {
   const appointmentId = req.body.appointmentId;
+  const userId = req.body.userId;
 
   try {
+    const appo=await appointmentModel.findOne({_id:appointmentId})
+    const doc=await doctorModel.findOne({_id:appo.doctorId})
+    const consultation=doc.feesPerCunsaltation;
     // Find the appointment by ID and delete it
     const deletedAppointment = await appointmentModel.findByIdAndDelete(appointmentId);
 
@@ -587,9 +655,24 @@ const deleteAppointment = async (req, res) => {
     }
 
     // Successfully deleted the appointment
+    // Now, find the user's balance and reduce 50 from it
+    const userBalance = await balanceModel.findOne({ userId:userId });
+
+    if (!userBalance) {
+      return res.status(404).json({
+        success: false,
+        message: "Balance not found for the user",
+      });
+    }
+
+    // Reduce 50 from the user's balance and save it back to the database
+    userBalance.balance -= 50;
+    userBalance.balance += consultation;
+    await userBalance.save();
+
     return res.status(200).json({
       success: true,
-      message: "Appointment cancelled successfully",
+      message: "Appointment cancelled successfully , Your refund will be available in your wallet.",
       data: deletedAppointment,
     });
   } catch (error) {
@@ -602,6 +685,27 @@ const deleteAppointment = async (req, res) => {
   }
 };
 
+
+const findUserBalance = async (req, res) => {
+  console.log("HIIIIIIIIIIIII")
+  try {
+    const  userId  = req.body.userId;
+    console.log(userId);
+    // Find the user's balance document based on userId
+    const userBalance = await balanceModel.findOne({ userId:userId });
+    console.log(userBalance);
+    if (!userBalance) {
+      return res.status(404).json({ error: "Balance not found for the user" });
+    }
+
+    
+
+    res.status(200).send({success:true, balance: userBalance.balance });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 
 module.exports = {
@@ -622,4 +726,6 @@ module.exports = {
   gmeetGet,
   complaint,
   deleteAppointment,
+  coinrequest,
+  findUserBalance
 };
