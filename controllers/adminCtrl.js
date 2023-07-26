@@ -287,14 +287,17 @@ const acceptRedeemRequest = async (req, res) => {
     
     const requestId = req.body.user;
     const user = await adcoinModel.findOne({ _id:requestId });
+  
     const person=await userModel.findOne({_id:user.userId});
-
+    
     console.log(requestId);
     const redeemRequest = await adcoinModel.findOneAndDelete(requestId);
 
     if (!redeemRequest) {
       return res.status(404).json({ success: false, error: "Redeem request not found" });
     }
+
+   
     const froms="u2004061@rajagiri.edu.in";
     const tos=person.email;
     const frps="roshXAVIER01+";
@@ -332,11 +335,15 @@ let transporter = nodemailer.createTransport({
 const rejectRedeemRequest = async (req, res) => {
   try {
     const requestId = req.body.user;
+    
     const user = await adcoinModel.findOne({ _id:requestId });
+    const balances=await balanceModel.findOne({userId:user.userId})
     const person=await userModel.findOne({_id:user.userId})
     console.log(requestId);
+   
+    balances.balance+=user.amount;
     const redeemRequest = await adcoinModel.findOneAndDelete(requestId);
-
+    await balances.save();
     if (!redeemRequest) {
       return res.status(404).json({ success: false, error: "Redeem request not found" });
     }
