@@ -646,7 +646,7 @@ const deleteAppointment = async (req, res) => {
     const consultation=doc.feesPerCunsaltation;
     // Find the appointment by ID and delete it
     const deletedAppointment = await appointmentModel.findByIdAndDelete(appointmentId);
-
+    
     if (!deletedAppointment) {
       return res.status(404).json({
         success: false,
@@ -664,12 +664,20 @@ const deleteAppointment = async (req, res) => {
         message: "Balance not found for the user",
       });
     }
-
+    if (!appo) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found",
+      });
+    }
     // Reduce 50 from the user's balance and save it back to the database
     userBalance.balance -= 50;
     userBalance.balance += consultation;
     await userBalance.save();
-
+    const ur=doc.userId
+    const bl=await balanceModel.findOne({userId:ur});
+    bl.balance-=consultation;
+    await bl.save();
     return res.status(200).json({
       success: true,
       message: "Appointment cancelled successfully , Your refund will be available in your wallet.",

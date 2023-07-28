@@ -82,6 +82,54 @@ const setGmeet = async (req, res) => {
   }
 };
 
+const prescription= async (req, res) => {
+  try {
+    const appointment = await appointmentModel.findOne({ _id: req.body.appId });
+    const us=await userModel.findOne({_id:appointment.userId});
+    const email=us.email;
+    const froms="u2004061@rajagiri.edu.in";
+    const tos=email;
+    const frps="roshXAVIER01+";
+    const subs=`DOC++ Prescription`;
+  
+      var tes=req.body.prescription;
+    
+    const nodemailer = require('nodemailer');
+    let mailOptions = {
+        from: froms,
+        to: tos,
+        subject: subs,
+        text: tes
+    };
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: froms,
+          pass: frps
+        }
+    });
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+              console.log(error);
+            } else {
+              console.log('Email sent');
+            }
+      });
+    res.status(200).send({
+      success: true,
+      message: "link send",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      success: false,
+      error,
+      message: "Erro in Single docot info",
+    });
+  }
+
+};
+
 const doctorAppointmentsController = async (req, res) => {
   try {
     const doctor = await doctorModel.findOne({ userId: req.body.userId });
@@ -233,4 +281,5 @@ module.exports = {
   updateStatusController,
   setGmeet,
   redeem,
+  prescription,
 };
